@@ -1,0 +1,89 @@
+version: '3'
+services:
+  postgres:
+    image: "postgres:9.6"
+    restart: always
+    environment:
+      POSTGRES_USER: awx
+      POSTGRES_PASSWORD: HU4UXmPxFRwXYXkVf2Q6Gz6D6V2X7GTj
+      POSTGRES_DB: awx
+    volumes:
+      - postgresql:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: "rabbitmq:3"
+    environment:
+      RABBITMQ_DEFAULT_VHOST: awx
+      RABBITMQ_DEFAULT_USER: awx
+      RABBITMQ_DEFAULT_PASS: Cj7xJT5S7hVrKrcQ4JQnUv8PGLYGEsrn
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+
+  memcached:
+    image: "memcached:1.5.16"
+
+  awx_web:
+    image: "ansible/awx_web:6.0.0"
+    links:
+      - rabbitmq
+      - memcached
+      - postgres
+    ports:
+      - "80:8052"
+    hostname: awx01-east
+    user: root
+    environment:
+      SECRET_KEY: hTUDyKyALAgHBaJfVYdYwj7pTBMcL347
+      DATABASE_USER: awx
+      DATABASE_PASSWORD: HU4UXmPxFRwXYXkVf2Q6Gz6D6V2X7GTj
+      DATABASE_NAME: awx
+      DATABASE_PORT: 5432
+      DATABASE_HOST: postgres
+      RABBITMQ_USER: awx
+      RABBITMQ_PASSWORD: Cj7xJT5S7hVrKrcQ4JQnUv8PGLYGEsrn
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_VHOST: awx
+      MEMCACHED_HOST: memcached
+      MEMCACHED_PORT: 11211
+      AWX_ADMIN_USER: admin
+      AWX_ADMIN_PASSWORD: admin
+    volumes:
+      - ./secret-key.txt:/etc/tower/SECRET_KEY
+      - awx_web:/var/lib/nginx
+
+  awx_task:
+    image: "ansible/awx_task:6.0.0"
+    links:
+      - rabbitmq
+      - memcached
+      - awx_web:awxweb
+      - postgres
+    hostname: awx
+    user: root
+    environment:
+      SECRET_KEY: hTUDyKyALAgHBaJfVYdYwj7pTBMcL347
+      DATABASE_USER: awx
+      DATABASE_PASSWORD: HU4UXmPxFRwXYXkVf2Q6Gz6D6V2X7GTj
+      DATABASE_NAME: awx
+      DATABASE_PORT: 5432
+      DATABASE_HOST: postgres
+      RABBITMQ_USER: awx
+      RABBITMQ_PASSWORD: Cj7xJT5S7hVrKrcQ4JQnUv8PGLYGEsrn
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_VHOST: awx
+      MEMCACHED_HOST: memcached
+      MEMCACHED_PORT: 11211
+      AWX_ADMIN_USER: admin
+      AWX_ADMIN_PASSWORD: admin
+    volumes:
+      - ./secret-key.txt:/etc/tower/SECRET_KEY
+      - awx_task:/var/lib/nginx
+
+volumes:
+  postgresql:
+  awx_web:
+  awx_task:
+  memcached:
+  rabbitmq:
