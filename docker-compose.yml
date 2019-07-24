@@ -12,6 +12,7 @@ services:
 
   rabbitmq:
     image: "rabbitmq:3"
+    restart: always
     environment:
       RABBITMQ_DEFAULT_VHOST: awx
       RABBITMQ_DEFAULT_USER: awx
@@ -21,9 +22,11 @@ services:
 
   memcached:
     image: "memcached:1.5.16"
+    restart: always
 
   awx_web:
     image: "ansible/awx_web:6.0.0"
+    restart: always
     links:
       - rabbitmq
       - memcached
@@ -54,6 +57,7 @@ services:
 
   awx_task:
     image: "ansible/awx_task:6.0.0"
+    restart: always
     links:
       - rabbitmq
       - memcached
